@@ -4,194 +4,80 @@ using System.Collections.Generic;
 
 public class Program
 {
+    static Random rnd = new Random();
+
     public static void Main(string[] args)
     {
-        bool gameON = true;
-        List<string> Results = new List<string>();
-        List<int> numbers = new List<int>();
+        bool gameStatus = true;
+        List<string> results = new List<string>();
+        List<int> numbers = Enumerable.Range(0, 100).ToList();
         int currentGame = 0;
-        int number1 = 0;
-        int number2 = 0;
         int victory = 0;
-        int lose = 0;
+        int losses = 0;
         int result = 0;
-        int gameLenght = 0;
         int userAnswer = 0;
+        int gameLength = 0;
         int operationChoice = 0;
-        for (int i = 0; i < 100; i++)
-        {
-            numbers.Add(i);
-        }
-        while (gameON)
+
+        while (gameStatus)
         {
             currentGame++;
+            victory = 0;
+            losses = 0;
+            result = 0;
             Console.WriteLine("Welcome to Math Game!\n");
-            Console.WriteLine("How many questions the game should have?\n");
-            bool unvalidLenght = true;
-            while (unvalidLenght)
-            {
-                Console.WriteLine("Min = [5] / Max = [10]\n");
-                Console.Write("Your answer: ");
-                if (int.TryParse(Console.ReadLine(), out gameLenght))
-                {
-                    if (gameLenght >= 5 && gameLenght <= 10)
-                    {
-                        unvalidLenght = false;
-                        continue;
-                    }
-                }              
-                Console.WriteLine("Please, choose a valid number of questions.");
-            }
 
-            for (int i = 0; i < gameLenght; i++)
-            {
-                bool unvalidOperation = true;
-                while (unvalidOperation)
-                {
-                    Console.WriteLine("Choose an operation: \n");
-                    Console.WriteLine("[1]Sum\n[2]Subtraction\n[3]Multiplication\n[4]Division\n");
-                    Console.Write("User choice: ");
-                    if (int.TryParse(Console.ReadLine(), out operationChoice))
-                    {
-                        if (operationChoice == 1 || operationChoice == 2 || operationChoice == 3 || operationChoice == 4)
-                        {
-                            unvalidOperation = false;
-                            continue;
-                        }
-                    }
-                    
-                    Console.WriteLine("Please, choose a valid option.");
-                }
-                result = questionGenerator(operationChoice, numbers, ref number1, ref number2, ref userAnswer);
-                resultCheck(ref victory, ref lose, result, userAnswer);
-            }
-            if (victory > lose)
-            {
-                Console.WriteLine($"Congratulations, you won!\n Victories: {victory}  Loses: {lose}");
-                Results.Add($"Game {currentGame} - Victory! Score: {victory}w / {lose}l");
-            }
-            else
-            {
-                Console.WriteLine($"You lose!\nVictories: {victory}  Loses: {lose}");
-                Results.Add($"Game {currentGame} - Lose! Score: {victory}w / {lose}l");
-            }
+            gameLength = getGameLength();
 
-            bool gameEndOption = true;
-            while (gameEndOption)
+            for (int i = 0; i < gameLength; i++)
             {
-                Console.WriteLine("Do you wanna play again? [1]play again -- [2]end game -- [3]Check placar status");
-                Console.Write("User option: ");
-                String userEndOption = Console.ReadLine();
-                if (userEndOption == "1")
-                {
-                    gameEndOption = false;
-                    continue;
-                }
-                if (userEndOption == "2")
-                {
-                    gameEndOption = false;
-                    gameON = false;
-                    continue;
-                }
-                if (userEndOption == "3")
-                {
-                    for (int i = 0; i < Results.Count; i++)
-                    {
-                        Console.WriteLine(Results[i]);
-                        continue;
-                    }
-                }
-                Console.WriteLine("Please choose a valid option.");
+                operationChoice = chooseOperation();
+                (result, userAnswer) = questionGenerator(operationChoice, numbers);
+                updateScore(ref victory, ref losses, result, userAnswer);
             }
+            resultCheck(ref victory, ref losses, currentGame, results);
+            gameStatus = getGameStatus(results);
         }
     }
     //[1ADD / 2SUB / 3MULT / 4DIV]
-    public static int questionGenerator(int operationChoice, List<int> numbers, ref int number1, ref int number2, ref int userAnswer)
+    public static (int result, int userAnswer) questionGenerator(int operationChoice, List<int> numbers)
     {
         int result = 0;
-        bool userAnswerNotValid = true;
-        bool restNot0 = true;
-        Random rnd = new Random();
+        int number1; int number2;
+        int userAnswer = 0;
         int index = rnd.Next(numbers.Count);
         number1 = numbers[index];
         index = rnd.Next(numbers.Count);
         number2 = numbers[index];
 
 
-        if (operationChoice == 1)
+        switch (operationChoice)
         {
-            result = number1 + number2;
-            while (userAnswerNotValid)
-            {
-                Console.WriteLine($"Question: {number1} + {number2}");
-                Console.Write("Your answer: ");
-                if (int.TryParse(Console.ReadLine(), out userAnswer))
-                {
-                    userAnswerNotValid = false;
-                }
-                else { 
-                    Console.WriteLine("Please, enter a valid number.");
-                }
-            }          
-        }
-        if (operationChoice == 2)
-        {
-            result = number1 - number2;
-            while (userAnswerNotValid)
-            {
-                Console.WriteLine($"Question: {number1} - {number2}");
-                Console.Write("Your answer: ");
-                if (int.TryParse(Console.ReadLine(), out userAnswer))
-                {
-                    userAnswerNotValid = false;
-                }
-                else
-                {
-                    Console.WriteLine("Please, enter a valid number.");
-                }
-            }
-        }
-        if (operationChoice == 3)
-        {
-            result = number1 * number2;
-            while (userAnswerNotValid)
-            {
-                Console.WriteLine($"Question: {number1} * {number2}");
-                Console.Write("Your answer: ");
-                if (int.TryParse(Console.ReadLine(), out userAnswer))
-                {
-                    userAnswerNotValid = false;
-                }
-                else
-                {
-                    Console.WriteLine("Please, enter a valid number.");
-                }
-            }
-        }
-        if (operationChoice == 4)
-        {
+            case 1:
+                result = number1 + number2;
+                userAnswer = getUserAnswer($"Question: {number1} + {number2}");
+                break;
 
-            number2 = rnd.Next(1, numbers.Count);
-            int multiplier = rnd.Next(1, 11);
-            number1 = number2 * multiplier;
-            result = number1 / number2;
-            while (userAnswerNotValid)
-            {
-                Console.WriteLine($"Question: {number1} / {number2}");
-                Console.Write("Your answer: ");
-                if (int.TryParse(Console.ReadLine(), out userAnswer))
-                {
-                    userAnswerNotValid = false;
-                }
-                else
-                {
-                    Console.WriteLine("Please, enter a valid number.");
-                }
-            }
+            case 2:
+                result = number1 - number2;
+                userAnswer = getUserAnswer($"Question: {number1} - {number2}");
+                break;
+
+            case 3:
+                result = number1 * number2;
+                userAnswer = getUserAnswer($"Question: {number1} * {number2}");
+                break;
+            case 4:     
+                number2 = rnd.Next(1, numbers.Count);
+                int multiplier = rnd.Next(1, 11);
+                number1 = number2 * multiplier;
+                result = number1 / number2;
+                userAnswer = getUserAnswer($"Question: {number1} / {number2}");
+                break;
         }
-        return result;
+        return (result, userAnswer);
     }
-    public static void resultCheck(ref int victory, ref int lose, int result, int userAnswer)
+    public static void updateScore(ref int victory, ref int losses, int result, int userAnswer)
     {
         if (userAnswer == result)
         {
@@ -199,8 +85,99 @@ public class Program
         }
         else
         {
-            lose++;
+            losses++;
+        }
+    }
+    public static int getUserAnswer(string question)
+    {
+        int userAnswer = 0;
+        while (true)
+        {
+            Console.WriteLine(question);
+            Console.Write("Your answer: ");
+            if (int.TryParse(Console.ReadLine(), out userAnswer))
+            {
+                return userAnswer;
+            }
+            Console.WriteLine("Please, enter a valid number.");
+        }
+    }
+    public static int getGameLength()
+    {
+        int gameLength = 0;
+
+        while (true)
+        {
+            Console.WriteLine("How many questions the game should have?\n");
+            Console.WriteLine("Min = [5] / Max = [10]\n");
+            Console.Write("Your answer: ");
+            if (int.TryParse(Console.ReadLine(), out gameLength))
+            {
+                if (gameLength >= 5 && gameLength <= 10)
+                {
+                    return gameLength;
+                }
+            }
+            Console.WriteLine("Please, choose a valid number of questions.");
+        }
+    }
+    public static int chooseOperation()
+    {
+        int operationChoice = 0;
+        Console.WriteLine("Choose an operation: \n");
+        while (true)
+        {
+            Console.WriteLine("[1]Sum\n[2]Subtraction\n[3]Multiplication\n[4]Division\n");
+            if (int.TryParse(Console.ReadLine(), out operationChoice))
+            {
+                if (operationChoice == 1 || operationChoice == 2 || operationChoice == 3 || operationChoice == 4)
+                {
+                    return operationChoice;
+                }
+            }
+            Console.WriteLine("Please, select a valid operation.");
+        }
+    }
+    public static void resultCheck(ref int victory, ref int losses, int currentGame, List<string> results)
+    {
+        if (victory > losses)
+        {
+            Console.WriteLine($"Congratulations, you won!\nVictories: {victory}  Loses: {losses}");
+            results.Add($"Game {currentGame} - Victory! Score: {victory} Wins / {losses} Losses");
+        }
+        else
+        {
+            Console.WriteLine($"You lose!\nVictories: {victory}  Loses: {losses}");
+            results.Add($"Game {currentGame} - Lose! Score: {victory} Wins / {losses} Losses");
+        }
+    }
+    public static bool getGameStatus(List<string> results)
+    {
+        while (true)
+        {
+            Console.WriteLine("Do you wanna play again? [1]play again -- [2]end game -- [3]Check placar status");
+            Console.Write("User option: ");
+            int userStatusOption;
+            if (int.TryParse(Console.ReadLine(), out userStatusOption))
+            {
+                if (userStatusOption == 1)
+                {
+                    return true;
+                }
+                if (userStatusOption == 2)
+                {
+                    return false;
+                }
+                if (userStatusOption == 3)
+                {
+                    for (int i = 0; i < results.Count; i++)
+                    {
+                        Console.WriteLine(results[i]);
+                        continue;
+                    }
+                }
+            }
+            Console.WriteLine("Please choose a valid option.");
         }
     }
 }
-
